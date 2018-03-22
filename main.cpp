@@ -14,12 +14,12 @@ inline char* Translate(const string str)
 {	
 	len = 0;
 	
-	int L = str.length(), S = 0, E = str.find(' ');
+	int L = str.length(), S = 0, E = str.find(' ', S);
 	while (E != -1)
-		text[len++] = Pinyin_map[str.substr(S, E-S)], S = E+1;
+		text[len++] = Pinyin_map[str.substr(S, E-S)], S = E+1, E = str.find(' ', S);
 	text[len++] = Pinyin_map[str.substr(S, L-S)];
 	
-	for(int o=1; o<len; o++)
+	for(int o=0; o<len; o++)
 	{
 		int num_0 = (o?(int)Pinyin_vec[text[o-1]].size():0);
 		int num_1 = (int)Pinyin_vec[text[o]].size();
@@ -34,14 +34,14 @@ inline char* Translate(const string str)
 		
 		if (o == 0)
 			for(int i=0; i<num_1; i++)
-				f[0][i] = log((Char_times[Pinyin_vec[text[o]][i]]+1) / tot_1);
+				f[0][i] = log(1.0*(Char_times[Pinyin_vec[text[o]][i]]+1) / tot_1);
 		else
 			for(int i=0; i<num_1; i++)
 			{
 				f[o][i] = -1e90, g[o][i] = -1;
 				for(int j=0; j<num_0; j++)
 				{
-					double tmp = f[o-1][j] + log((Times[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1) / tot_2);
+					double tmp = f[o-1][j] + log(1.0*(Times[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1) / tot_2);
 					if (f[o][i] < tmp)
 						f[o][i] = tmp, g[o][i] = j;
 				}
@@ -71,8 +71,12 @@ inline char* Translate(const string str)
 
 int main()
 {
-	ReadCharacter("pinyin.txt");
-	ReadData("data.txt");
+	ReadCharacter("pinyin");
+	ReadData("data");
+	
+	#ifdef __DEBUG
+	puts("完成数据导入！");
+	#endif
 	
 	ifstream fin("input.txt");
 	ofstream fout("output.txt");

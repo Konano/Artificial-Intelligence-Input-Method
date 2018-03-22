@@ -84,9 +84,9 @@ inline void StoreData(const char *localFileName)
 
 int main()
 {
-	ReadCharacter("pinyin.txt");
+	ReadCharacter("pinyin");
 	
-	char Filename[30] = "sina_news_gbk/2016-00.txt";
+	char Filename[30] = "sina_news_gbk/2016-00";
 	
 	for(int month=01; month<=11; month++)
 	{
@@ -99,7 +99,7 @@ int main()
 		ReadInput(Filename);
 	}
 	
-	ReadData("data.txt");
-	StoreData("data.txt");
+	ReadData("data");
+	StoreData("data");
 	return 0;
 }
