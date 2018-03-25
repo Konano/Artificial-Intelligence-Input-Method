@@ -1,8 +1,16 @@
 # homework_input_method
 The 1st homework of the Artificial Intelligence Introduction.
 
-测试集总量：7471
+2-gram v1: 最基本的版本
 
-2-gram v1: 71.2488%
+2-gram v2: 将材料分词，注音，以及多音字拆分成多个统计个体，以解决多音字问题
 
-2-gram v2(训练集 7/75): 73.1763%
+## 测试结果
+
+测试集总量: 104463
+
+2-gram v1: 
+
+2-gram v2: 84.7065%
+
+2-gram v2.1: 84.6146%

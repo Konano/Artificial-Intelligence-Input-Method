@@ -80,8 +80,11 @@ int main()
 	ifstream fin("input.txt");
 	ofstream fout("output.txt");
 	
-	string str;
-	while (getline(fin, str) && str != "") 
+	string str; int tot = 0;
+	while (getline(fin, str) && str != "")
+	{
+		printf("Now: %d\n", ++tot);
 		fout << Translate(str) << endl;
+	}
 	return 0;
 }
