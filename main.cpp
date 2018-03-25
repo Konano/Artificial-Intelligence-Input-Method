@@ -27,21 +27,21 @@ inline char* Translate(const string str)
 		int tot_2 = 0;
 		
 		for(int i=0; i<num_1; i++)
-			tot_1 += Char_times[Pinyin_vec[text[o]][i]]+1;
+			tot_1 += Times_1[Pinyin_vec[text[o]][i]]+1;
 		
 		for(int i=0; i<num_1; i++) for(int j=0; j<num_0; j++)
-			tot_2 += Times[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1;
+			tot_2 += Times_2[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1;
 		
 		if (o == 0)
 			for(int i=0; i<num_1; i++)
-				f[0][i] = log(1.0*(Char_times[Pinyin_vec[text[o]][i]]+1) / tot_1);
+				f[0][i] = log(1.0*(Times_1[Pinyin_vec[text[o]][i]]+1) / tot_1);
 		else
 			for(int i=0; i<num_1; i++)
 			{
 				f[o][i] = -1e90, g[o][i] = -1;
 				for(int j=0; j<num_0; j++)
 				{
-					double tmp = f[o-1][j] + log(1.0*(Times[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1) / tot_2);
+					double tmp = f[o-1][j] + log(1.0*(Times_2[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1) / tot_2);
 					if (f[o][i] < tmp)
 						f[o][i] = tmp, g[o][i] = j;
 				}
@@ -71,8 +71,7 @@ inline char* Translate(const string str)
 
 int main()
 {
-	ReadCharacter("pinyin");
-	ReadData("data");
+	ReadData();
 	
 	#ifdef __DEBUG
 	puts("完成数据导入！");

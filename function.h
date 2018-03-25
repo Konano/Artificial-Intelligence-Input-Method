@@ -12,7 +12,9 @@
 #include "jsoncpp/json.h"
 
 #define MAXPINYIN 500
-#define MAXCHAR 7000
+#define MAXCHAR 30000
+
+#define Int(i, j) i*MAXCHAR+j
 
 using namespace std;
 
@@ -23,11 +25,12 @@ map<string,int> Pinyin_map;
 vector<int> Pinyin_vec[MAXPINYIN];
 
 pair<char,char> Char[MAXCHAR];
-map<pair<char,char>,int> Char_map;
-//int Char_pinyin[MAXCHAR];
+int Char_pinyin[MAXCHAR];
+map<pair<pair<char,char>,int>,int> Char_map;
+map<pair<char,char>,vector<int> > Char_vec;
 
-map<int,int> Times;
-int Char_times[MAXCHAR];
+map<int,int> Times_2;
+int Times_1[MAXCHAR];
 
 inline void Error(const int id) // 报错
 {
@@ -36,78 +39,82 @@ inline void Error(const int id) // 报错
 	exit(1);
 }
 
-inline void ReadCharacter(const char *localFileName)
+inline int Character_ID(pair<char,char> ch, string py)
 {
-	string str;
+	if (py=="n") py="en";
+	if (py=="lve") py="lue";
+	if (py=="nve") py="nue";
 	
-	if (localFileName)
-	{
-		ifstream fin(localFileName);
-		if (fin)
-			while (getline(fin, str) && str != "")
-			{
-				int L = str.length(), i = str.find(' ');
-				
-				Pinyin[++PinyinTotal] = str.substr(0, i);
-				Pinyin_map[Pinyin[PinyinTotal]] = PinyinTotal;
-				
-				while (i < L) if (str[i] & 0x80)
-				{
-					if (Char_map.count(make_pair(str[i], str[i+1])) == 0)
-					{						
-						Char[++CharTotal] = make_pair(str[i], str[i+1]);
-						Char_map[Char[CharTotal]] = CharTotal;
-					}
-					Pinyin_vec[PinyinTotal].push_back(Char_map[make_pair(str[i], str[i+1])]);
-					//Char_pinyin[CharTotal] = PinyinTotal;
-					
-					i += 2;
-				} else i++;
-			}
-		else
-			Error(2);
-	}
-	else
-		Error(2);
+	if (Char_map.count(make_pair(ch, Pinyin_map[py])))
+		return Char_map[make_pair(ch, Pinyin_map[py])];
+	
+	if (Pinyin_map[py] == 0)
+		Pinyin[++PinyinTotal] = py,
+		Pinyin_map[py] = PinyinTotal;
+	
+	int py_id = Pinyin_map[py];
+	
+	CharTotal ++;
+	Char[CharTotal] = ch;
+	Char_pinyin[CharTotal] = py_id;
+	Char_map[make_pair(ch, py_id)] = CharTotal;
+	Pinyin_vec[py_id].push_back(CharTotal);
+	Char_vec[ch].push_back(py_id);
+	
+	return CharTotal;
 }
 
-inline void ReadData(const char *localFileName)
+inline void ReadData()
 {
-	if (localFileName)
+	char str[50], py[50];
+	
+	// ============================================ 1-Gram
+	
+	ifstream fin1("1-gram");
+	
+	while (fin1 >> str >> py)
+		fin1 >> Times_1[Character_ID(make_pair(str[0], str[1]), py)];
+	
+	// ============================================ 2-Gram
+	
+	ifstream fin2("2-gram");
+	
+	while (fin2 >> str)
 	{
-		ifstream fin(localFileName);
-		if (fin)
-		{
-			int tot, tmp, tmp2;
-			for(int i=1; i<=CharTotal; i++)
-			{
-				fin >> tmp;
-				Char_times[i] += tmp;
-			}
-			
-			fin >> tot;
-			for(int i=1; i<=tot; i++)
-			{
-				fin >> tmp >> tmp2;
-				Times[tmp] += tmp2;
-			}
-		}
+		int id1 = Char_map[make_pair(make_pair(str[0], str[1]), Char_vec[make_pair(str[0], str[1])][str[2]-'0'])];
+		int id2 = Char_map[make_pair(make_pair(str[3], str[4]), Char_vec[make_pair(str[3], str[4])][str[5]-'0'])];
+		
+		fin2 >> Times_2[Int(id1, id2)];
 	}
 }
 
-inline int ChineseChar(const char ch)
+inline int ChineseChar(const char ch, const char ch2)
 {
-	if ((ch & 0xa0) == 0xa0 && (ch & 0x50) == 0x00) 
+	if ((0xffffffa1 <= (int)ch && (int)ch <= 0xffffffa8) || ((int)ch == 0xffffffa9 && (int)ch2 != 0xffffff96))
 		return -1; // 中文字符
 	if (ch & 0x80)
 		return 1; // 汉字
 	return 0;
 }
 
-inline void OutputChar(const int id)
+#include <sstream>
+string Int_to_String(int n)
 {
-	printf("%c%c", Char[id].first, Char[id].second);
+	ostringstream stream;
+	stream << n;
+	return stream.str();
 }
 
+inline string OutputChar(const int id)
+{
+	//cout << "Character " << id << ": " << Char[id].first << Char[id].second << " " << Pinyin[Char_pinyin[id]] << endl;
+	
+	string tmp = ""; int i = 0;
+	while (Char_vec[Char[id]][i] != Char_pinyin[id]) i++;
+	return tmp + Char[id].first + Char[id].second + Int_to_String(i);
+}
 
-#define Int(i, j) i*CharTotal+j-1
+inline void OutputChar2(const int id)
+{
+	cout << "Character " << id << ": " << Char[id].first << Char[id].second << " " << Pinyin[Char_pinyin[id]] << endl;
+}

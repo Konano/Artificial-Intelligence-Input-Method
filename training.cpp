@@ -1,50 +1,88 @@
 #define __DEBUG
+//#define FIRST
 
 #include "function.h"
 
 using namespace std;
 
-int len, text[1000];
+int len, text[10000];
 
-inline void Analyze(string str)
+#ifdef __DEBUG
+int tot = 0;
+#endif
+
+inline void Analyze(string str, ifstream &fpy)
 {
 	int L = str.length(), i = 0;
 	
-	while (i < L) 
-		switch (ChineseChar(str[i]))
+	#ifdef __DEBUG
+	//cout << hex << (int)str[1];
+	//cout << str << endl;
+	#endif
+	
+	while (i+1 < L) 
+		switch (ChineseChar(str[i], str[i+1]))
 		{
 			case -1: i++;
 			case 0: i++; break;
 			case 1:
 			{
 				len = 0;
-				while ((i < L) && ChineseChar(str[i]) == 1)
+				while ((i+1 < L) && ChineseChar(str[i], str[i+1]) == 1)
 				{
-					if (Char_map.count(make_pair(str[i], str[i+1])))
-						text[len++] = Char_map[make_pair(str[i], str[i+1])];
-					else
-						text[len++] = 0;
+					string py; fpy >> py;
+					
+					#ifdef __DEBUG
+					//cout << str[i] << str[i+1] << py << endl;
+					int tmp = CharTotal;
+					#endif
+					
+					text[len++] = Character_ID(make_pair(str[i], str[i+1]), py);
+					
+					#ifdef __DEBUG
+					if (tmp != CharTotal) 
+						OutputChar2(CharTotal);
+					#endif
+					
 					i += 2;
 				}
+				
 				for(int j=1; j<len; j++) if (text[j-1] && text[j])
-					Times[Int(text[j-1], text[j])]++;
+					Times_2[Int(text[j-1], text[j])]++;
 				for(int j=0; j<len; j++) if (text[j])
-					Char_times[text[j]]++;
+					Times_1[text[j]]++;
 				
 				#ifdef __DEBUG
-				//for(int j=0; j<len; j++) OutputChar(text[j]); puts("");
+				//for(int j=1; j<=len; j++) OutputChar(text[j]); puts("");
 				#endif
 			}
 		}
 }
 
-inline void ReadInput(const char *localFileName)
+inline void ReadInput(char *localFileName)
 {
-	#ifdef __DEBUG
-	int tot = 0;
-	#endif
+	string str;
 	
-	string str; 
+	localFileName[14] = 'S';
+	ifstream fin(localFileName);
+	localFileName[14] = 'P';
+	ifstream fpy(localFileName);
+	
+	while (!fin.eof())
+	{
+		#ifdef __DEBUG
+		tot++; //if (tot % 2000 == 0) printf("Now: %d\n", tot);
+		printf("Now: %d\n", tot);
+		#endif
+		
+		getline(fin, str);
+		Analyze(str, fpy);
+	}
+}
+
+inline void ReadCharacter(const char *localFileName)
+{
+	string str;
 	
 	if (localFileName)
 	{
@@ -52,54 +90,80 @@ inline void ReadInput(const char *localFileName)
 		if (fin)
 			while (getline(fin, str) && str != "")
 			{
-				Json::Reader reader;
-				Json::Value input;
-				reader.parse(str, input);
+				int L = str.length(), i = str.find(' '), ii = i;
 				
-				#ifdef __DEBUG
-				tot++; if (tot % 2000 == 0) printf("Now: %d\n", tot);
-				#endif
-				
-				Analyze(input["html"].asString());
+				while (i < L) if (str[i] & 0x80)
+					Character_ID(make_pair(str[i], str[i+1]), str.substr(0, ii)), 
+					i += 2;
+				else 
+					i ++;
 			}
 		else
-			Error(1);
+			Error(2);
 	}
 	else
-		Error(1);
+		Error(2);
 }
 
-inline void StoreData(const char *localFileName)
+inline void StoreData()
 {
-	ofstream fout(localFileName);
+	// ============================================ 1-Gram
+	
+	#ifdef FIRST
+	ofstream fout1("1-gram");
+	#else
+	ofstream fout1("1-gram-tmp");
+	#endif
 	
 	for(int i=1; i<=CharTotal; i++) 
-		fout << Char_times[i] << endl;
+		fout1 << Char[i].first << Char[i].second << ' ' << Pinyin[Char_pinyin[i]] << ' ' << Times_1[i] << endl;
 	
-	fout << endl << Times.size() << endl;
+	// ============================================ 2-Gram
 	
-	for(map<int,int>::iterator iter = Times.begin(); iter != Times.end(); iter++)
-		fout << iter->first << iter->second << endl;
+	#ifdef FIRST
+	ofstream fout2("2-gram");
+	#else
+	ofstream fout2("2-gram-tmp");
+	#endif
+	
+	for(map<int,int>::iterator iter = Times_2.begin(); iter != Times_2.end(); iter++)
+		fout2 << OutputChar(iter->first/MAXCHAR) << OutputChar(iter->first%MAXCHAR) << ' ' << iter->second << endl;
 }
 
 int main()
 {
+	#ifdef FIRST
 	ReadCharacter("pinyin");
+	#else
+	ReadData();
+	#endif
 	
-	char Filename[30] = "sina_news_gbk/2016-00";
+	char Filename[30] = "sina_news_gbk/S-00";
 	
-	for(int month=01; month<=11; month++)
+	int f = 1, ST, ED;
+	
+	printf("从第几个文件开始：\n");
+	scanf("%d", &ST); f = ST-1;
+	
+	while (true)
 	{
-		#ifdef __DEBUG
-		printf("\n开始读取第 %d 个月的新闻……\n\n", month);
-		#endif
+		printf("指定处理到第几个文件：\n");
+		scanf("%d", &ED);
+		if (ED == -1) break;
 		
-		Filename[19] = month/10 + '0';
-		Filename[20] = month%10 + '0';
-		ReadInput(Filename);
+		while (f < ED)
+		{
+			f++;
+			
+			printf("\n开始读取第 %d 个文件……\n\n", f);
+			
+			Filename[16] = f/10 + '0';
+			Filename[17] = f%10 + '0';
+			
+			ReadInput(Filename);
+		}
 	}
 	
-	ReadData("data");
-	StoreData("data");
+	StoreData();
 	return 0;
 }
