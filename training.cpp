@@ -47,10 +47,12 @@ inline void Analyze(string str, ifstream &fpy)
 					i += 2;
 				}
 				
-				for(int j=1; j<len; j++) if (text[j-1] && text[j])
+				for(int j=2; j<len; j++) if (text[j-2] && text[j-1] && text[j])
+					Times_3[Long(text[j-2], text[j-1], text[j])]++;
+				/* for(int j=1; j<len; j++) if (text[j-1] && text[j])
 					Times_2[Int(text[j-1], text[j])]++;
 				for(int j=0; j<len; j++) if (text[j])
-					Times_1[text[j]]++;
+					Times_1[text[j]]++; */
 				
 				#ifdef __DEBUG
 				//for(int j=1; j<=len; j++) OutputChar(text[j]); puts("");
@@ -72,7 +74,7 @@ inline void ReadInput(char *localFileName)
 	{
 		#ifdef __DEBUG
 		tot++; //if (tot % 2000 == 0) printf("Now: %d\n", tot);
-		printf("Now: %d\n", tot);
+		//printf("Now: %d\n", tot);
 		#endif
 		
 		getline(fin, str);
@@ -105,65 +107,41 @@ inline void ReadCharacter(const char *localFileName)
 		Error(2);
 }
 
-inline void StoreData()
+inline void StoreData(int f)
 {
-	// ============================================ 1-Gram
+	char Filename[30] = "data/3-00";
 	
-	#ifdef FIRST
-	ofstream fout1("1-gram");
-	#else
-	ofstream fout1("1-gram-tmp");
-	#endif
+	Filename[7] = f/10 + '0';
+	Filename[8] = f%10 + '0';
 	
-	for(int i=1; i<=CharTotal; i++) 
-		fout1 << Char[i].first << Char[i].second << ' ' << Pinyin[Char_pinyin[i]] << ' ' << Times_1[i] << endl;
+	ofstream fout(Filename);
 	
-	// ============================================ 2-Gram
-	
-	#ifdef FIRST
-	ofstream fout2("2-gram");
-	#else
-	ofstream fout2("2-gram-tmp");
-	#endif
-	
-	for(map<int,int>::iterator iter = Times_2.begin(); iter != Times_2.end(); iter++)
-		fout2 << OutputChar(iter->first/MAXCHAR) << OutputChar(iter->first%MAXCHAR) << ' ' << iter->second << endl;
+	for(map<long long,int>::iterator iter = Times_3.begin(); iter != Times_3.end(); iter++)
+		fout << OutputChar((iter->first/MAXCHAR)/MAXCHAR) << OutputChar((iter->first/MAXCHAR)%MAXCHAR) << OutputChar(iter->first%MAXCHAR) << ' ' << iter->second << endl;
 }
 
 int main()
 {
-	#ifdef FIRST
-	ReadCharacter("pinyin");
-	#else
 	ReadData();
-	#endif
 	
 	char Filename[30] = "sina_news_gbk/S-00";
 	
-	int f = 1, ST, ED;
-	
-	printf("从第几个文件开始：\n");
-	scanf("%d", &ST); f = ST-1;
-	
-	while (true)
+	for(int f = 1; f <= 75; f++)
 	{
-		printf("指定处理到第几个文件：\n");
-		scanf("%d", &ED);
-		if (ED == -1) break;
+		printf("# %d\n", f);
 		
-		while (f < ED)
+		Filename[16] = f/10 + '0';
+		Filename[17] = f%10 + '0';
+		
+		ReadInput(Filename);
+		
+		if (f % 5 == 0)
 		{
-			f++;
-			
-			printf("\n开始读取第 %d 个文件……\n\n", f);
-			
-			Filename[16] = f/10 + '0';
-			Filename[17] = f%10 + '0';
-			
-			ReadInput(Filename);
+			printf("$ %d - %d\n", f/5, (int)Times_3.size());
+			StoreData(f/5);
+			Times_3.clear();
 		}
 	}
 	
-	StoreData();
 	return 0;
 }
