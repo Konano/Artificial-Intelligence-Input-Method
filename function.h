@@ -77,7 +77,7 @@ inline void ReadData()
 	while (fin1 >> str >> py)
 		fin1 >> Times_1[Character_ID(make_pair(str[0], str[1]), py)];
 	
-	/* // ============================================ 2-Gram
+	// ============================================ 2-Gram
 	
 	ifstream fin2("2-gram");
 	
@@ -87,11 +87,11 @@ inline void ReadData()
 		int id2 = Char_map[make_pair(make_pair(str[3], str[4]), Char_vec[make_pair(str[3], str[4])][str[5]-'0'])];
 		
 		fin2 >> Times_2[Int(id1, id2)]; 
-	} */
+	}
 	
 	// ============================================ 3-Gram
 	
-	/* ifstream fin3("3-gram");
+	ifstream fin3("3-gram");
 	
 	while (fin3 >> str)
 	{
@@ -100,7 +100,7 @@ inline void ReadData()
 		int id3 = Char_map[make_pair(make_pair(str[6], str[7]), Char_vec[make_pair(str[6], str[7])][str[8]-'0'])];
 		
 		fin3 >> Times_3[Long(id1, id2, id3)];
-	} */
+	}
 }
 
 inline int ChineseChar(const char ch, const char ch2)
