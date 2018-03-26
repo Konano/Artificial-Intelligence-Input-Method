@@ -7,6 +7,8 @@ The 1st homework of the Artificial Intelligence Introduction.
 
 2-gram v2.1: 将测试集作为训练集
 
+2-gram v2.1.1: 修改了解码时的 Bug
+
 ## 测试结果
 
 测试集总量: 104463
@@ -16,3 +18,5 @@ The 1st homework of the Artificial Intelligence Introduction.
 2-gram v2: 84.7065%
 
 2-gram v2.1: 89.9017%
+
+2-gram v2.1.1: ?%

@@ -41,7 +41,9 @@ inline char* Translate(const string str)
 				f[o][i] = -1e90, g[o][i] = -1;
 				for(int j=0; j<num_0; j++)
 				{
-					double tmp = f[o-1][j] + log(1.0*(Times_2[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1) / tot_2);
+					double tmp = f[o-1][j] + 
+								 log(1.0*(Times_2[Int(Pinyin_vec[text[o-1]][j], Pinyin_vec[text[o]][i])]+1) / tot_2) +
+								 log(1.0*(Times_1[Pinyin_vec[text[o]][i]]+1) / tot_1);
 					if (f[o][i] < tmp)
 						f[o][i] = tmp, g[o][i] = j;
 				}
