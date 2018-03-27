@@ -12,7 +12,7 @@
 #define MAXPINYIN 500
 #define MAXWORD 1500000
 
-#define Long(i, j) i*MAXWORD+j
+#define Long(i, j) 1LL*i*MAXWORD+j
 
 using namespace std;
 

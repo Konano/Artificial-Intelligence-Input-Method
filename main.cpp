@@ -75,14 +75,14 @@ inline string Translate(const string str)
 			int _o = o - wd[o][i].second;
 			int _num = (int)wd[_o].size();
 
-			// int tot_2 = 0;
-			// for(int j = 0; j < _num; j++)
-			// 	tot_2 += (Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1;
+			int tot_2 = 0;
+			for(int j = 0; j < _num; j++)
+				tot_2 += (Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1;
 
 			for(int j = 0; j < _num; j++)
 			{
 				double tmp = f[_o][j]
-					//+ log(1.0 * ((Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1) / tot_2)
+					+ log(1.0 * ((Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1) / tot_2)
 					+ log(1.0 * (Times_1[wd[o][i].first] + 1) / tot_1);
 				if (tmp > f[o][i])
 				{
