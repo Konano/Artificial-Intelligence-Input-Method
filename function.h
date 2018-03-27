@@ -44,46 +44,46 @@ inline int Character_ID(pair<char,char> ch, string py)
 	if (py=="n") py="en";
 	if (py=="lve") py="lue";
 	if (py=="nve") py="nue";
-	
+
 	if (Char_map.count(make_pair(ch, Pinyin_map[py])))
 		return Char_map[make_pair(ch, Pinyin_map[py])];
-	
+
 	if (Pinyin_map[py] == 0)
 		Pinyin[++PinyinTotal] = py,
 		Pinyin_map[py] = PinyinTotal;
-	
+
 	int py_id = Pinyin_map[py];
-	
+
 	CharTotal ++;
 	Char[CharTotal] = ch;
 	Char_pinyin[CharTotal] = py_id;
 	Char_map[make_pair(ch, py_id)] = CharTotal;
 	Pinyin_vec[py_id].push_back(CharTotal);
 	Char_vec[ch].push_back(py_id);
-	
+
 	return CharTotal;
 }
 
 inline void ReadData()
 {
 	char str[50], py[50];
-	
+
 	// ============================================ 1-Gram
-	
+
 	ifstream fin1("1-gram");
-	
+
 	while (fin1 >> str >> py)
 		fin1 >> Times_1[Character_ID(make_pair(str[0], str[1]), py)];
-	
+
 	// ============================================ 2-Gram
-	
+
 	ifstream fin2("2-gram");
-	
+
 	while (fin2 >> str)
 	{
 		int id1 = Char_map[make_pair(make_pair(str[0], str[1]), Char_vec[make_pair(str[0], str[1])][str[2]-'0'])];
 		int id2 = Char_map[make_pair(make_pair(str[3], str[4]), Char_vec[make_pair(str[3], str[4])][str[5]-'0'])];
-		
+
 		fin2 >> Times_2[Int(id1, id2)];
 	}
 }
@@ -108,7 +108,9 @@ string Int_to_String(int n)
 inline string OutputChar(const int id)
 {
 	//cout << "Character " << id << ": " << Char[id].first << Char[id].second << " " << Pinyin[Char_pinyin[id]] << endl;
-	
+
+	if (id == 0) return "??0";
+
 	string tmp = ""; int i = 0;
 	while (Char_vec[Char[id]][i] != Char_pinyin[id]) i++;
 	return tmp + Char[id].first + Char[id].second + Int_to_String(i);

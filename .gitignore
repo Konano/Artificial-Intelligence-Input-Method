@@ -1,6 +1,7 @@
 *.exe
 sina_news_gbk/
 log
+data/
 
 1-gram-tmp
 2-gram-tmp
