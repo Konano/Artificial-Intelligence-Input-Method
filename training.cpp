@@ -1,8 +1,8 @@
 #define __DEBUG
 //#define FIRST
 
-#define WORD_1
-//#define WORD_2
+//#define WORD_1
+#define WORD_2
 
 #include "function.h"
 
@@ -18,8 +18,6 @@ inline void ReadInput(char *localFileName)
 
 	localFileName[14] = 'C';
 	ifstream fin(localFileName);
-
-	if (fin) puts("Fuck");
 
 	localFileName[14] = 'P';
 	ifstream fpy(localFileName);
@@ -79,29 +77,30 @@ inline void ReadInput(char *localFileName)
 		Error(2);
 }*/
 
-inline void StoreData()
+inline void StoreData(int f)
 {
 	// ============================================ 1-Gram
 
-	#ifdef FIRST
-	ofstream fout1("1-word");
-	#else
-	ofstream fout1("1-word-tmp");
-	#endif
+	// #ifdef FIRST
+	// ofstream fout1("1-word");
+	// #else
+	// ofstream fout1("1-word-tmp");
+	// #endif
 
-	for(int i=1; i<=WordTotal; i++)
-		fout1 << Word[i] << ' ' << JoinPinyin(i) << ' ' << Times_1[i] << endl;
+	// for(int i=1; i<=WordTotal; i++)
+	// 	fout1 << Word[i] << ' ' << JoinPinyin(i) << ' ' << Times_1[i] << endl;
 
 	// ============================================ 2-Gram
 
-	/*#ifdef FIRST
-	ofstream fout2("2-word");
-	#else
-	ofstream fout2("2-word-tmp");
-	#endif
+	char Filename[30] = "data/00";
 
-	for(map<int,int>::iterator iter = Times_2.begin(); iter != Times_2.end(); iter++)
-		fout2 << OutputWord(iter->first/MAXWORD) << OutputWord(iter->first%MAXWORD) << ' ' << iter->second << endl;*/
+	Filename[5] = f/10 + '0';
+	Filename[6] = f%10 + '0';
+
+	ofstream fout2(Filename);
+
+	for(map<long long,int>::iterator iter = Times_2.begin(); iter != Times_2.end(); iter++)
+		fout2 << iter->first << ' ' << iter->second << endl;
 }
 
 int main()
@@ -117,7 +116,7 @@ int main()
 
 	while (true)
 	{
-		printf("当前词数量为 %d\n", WordTotal);
+		//printf("当前词数量为 %d\n", Times_2.size());
 		printf("指定处理到第几个文件：\n");
 		scanf("%d", &ED);
 		if (ED == -1) break;
@@ -125,17 +124,16 @@ int main()
 		while (f < ED)
 		{
 			f++;
-
-			printf("当前词数量为 %d\n", WordTotal);
 			printf("\n开始读取第 %d 个文件……\n\n", f);
 
 			Filename[16] = f/10 + '0';
 			Filename[17] = f%10 + '0';
 
 			ReadInput(Filename);
+			StoreData(f);
+			printf("%d 包关系数量为 %d\n", f, Times_2.size());
+			Times_2.clear();
 		}
 	}
-
-	StoreData();
 	return 0;
 }
