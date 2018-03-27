@@ -26,3 +26,5 @@ The 1st homework of the Artificial Intelligence Introduction.
 2-gram v2.1.1: ?%
 
 2-gram v2.2: 90.5306%
+
+1-word: 65.0316%

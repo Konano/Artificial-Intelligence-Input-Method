@@ -9,91 +9,125 @@
 #include <string>
 #include <cmath>
 
-#include "jsoncpp/json.h"
-
 #define MAXPINYIN 500
-#define MAXCHAR 30000
+#define MAXWORD 1500000
 
-#define Int(i, j) i*MAXCHAR+j
+#define Long(i, j) i*MAXWORD+j
 
 using namespace std;
 
-int PinyinTotal = 0, CharTotal = 0;
+int PinyinTotal = 0, WordTotal = 0;
 
 string Pinyin[MAXPINYIN];
 map<string,int> Pinyin_map;
-vector<int> Pinyin_vec[MAXPINYIN];
 
-pair<char,char> Char[MAXCHAR];
-int Char_pinyin[MAXCHAR];
-map<pair<pair<char,char>,int>,int> Char_map;
-map<pair<char,char>,vector<int> > Char_vec;
+string Word[MAXWORD];
+vector<int> Word_pinyin[MAXWORD];
+map<pair<string,int>,int> Word_map;
 
-map<int,int> Times_2;
-int Times_1[MAXCHAR];
-
-inline void Error(const int id) // 报错
-{
-	if (id == 1) puts("训练集文件有误。");
-	if (id == 2) puts("拼音汉字对照文件有误。");
-	exit(1);
-}
-
-inline int Character_ID(pair<char,char> ch, string py)
+inline int Pinyin_ID(string py)
 {
 	if (py=="n") py="en";
 	if (py=="lve") py="lue";
 	if (py=="nve") py="nue";
 
-	if (Char_map.count(make_pair(ch, Pinyin_map[py])))
-		return Char_map[make_pair(ch, Pinyin_map[py])];
-
 	if (Pinyin_map[py] == 0)
-		Pinyin[++PinyinTotal] = py,
-		Pinyin_map[py] = PinyinTotal;
-
-	int py_id = Pinyin_map[py];
-
-	CharTotal ++;
-	Char[CharTotal] = ch;
-	Char_pinyin[CharTotal] = py_id;
-	Char_map[make_pair(ch, py_id)] = CharTotal;
-	Pinyin_vec[py_id].push_back(CharTotal);
-	Char_vec[ch].push_back(py_id);
-
-	return CharTotal;
+		return Pinyin[Pinyin_map[py] = ++PinyinTotal] = py, PinyinTotal;
+	return Pinyin_map[py];
 }
+
+inline int PinyinHash(int id)
+{
+	int tmp = (int)Word_pinyin[id].size(), num = 0;
+	for(int i = 0; i < tmp; i++)
+		num = (2333LL * num + Word_pinyin[id][i]) % 1000000007;
+	return num;
+}
+
+inline int PinyinHash(string py)
+{
+	int L = py.length();
+	int num = 0;
+	int S = 0, E = py.find('-', S);
+
+	while (E != -1)
+	{
+		num = (2333LL * num + Pinyin_ID(py.substr(S, E-S))) % 1000000007;
+		S = E + 1;
+		E = py.find('-', S);
+	}
+	num = (2333LL * num + Pinyin_ID(py.substr(S, L-S))) % 1000000007;
+	return num;
+}
+
+inline string JoinPinyin(int id)
+{
+	string tmp = Pinyin[Word_pinyin[id][0]];
+	int tot = (int)Word_pinyin[id].size();
+	for(int i = 1; i < tot; i++)
+		tmp += '-' + Pinyin[Word_pinyin[id][i]];
+	return tmp;
+}
+
+inline void SplitPinyin(int id, string py)
+{
+	int L = py.length();
+	int S = 0, E = py.find('-', S);
+
+	while (E != -1)
+	{
+		Word_pinyin[id].push_back(Pinyin_ID(py.substr(S, E-S)));
+		S = E + 1;
+		E = py.find('-', S);
+	}
+
+	Word_pinyin[id].push_back(Pinyin_ID(py.substr(S, L-S)));
+}
+
+inline int Word_ID(string wd, string py)
+{
+	int H = PinyinHash(py);
+	if (Word_map.count(make_pair(wd, H)))
+		return Word_map[make_pair(wd, H)];
+
+	WordTotal ++;
+	Word[WordTotal] = wd;
+	Word_map[make_pair(wd, H)] = WordTotal;
+	SplitPinyin(WordTotal, py);
+
+	return WordTotal;
+}
+
+map<long long,int> Times_2;
+int Times_1[MAXWORD];
 
 inline void ReadData()
 {
-	char str[50], py[50];
+	// ============================================ 1-word
 
-	// ============================================ 1-Gram
+	ifstream fin1("1-word");
 
-	ifstream fin1("1-gram");
+	char str[500], py[500];
 
 	while (fin1 >> str >> py)
-		fin1 >> Times_1[Character_ID(make_pair(str[0], str[1]), py)];
+		fin1 >> Times_1[Word_ID(str, py)];
 
-	// ============================================ 2-Gram
+	// ============================================ 2-word
 
-	ifstream fin2("2-gram");
+	ifstream fin2("2-word");
 
-	while (fin2 >> str)
-	{
-		int id1 = Char_map[make_pair(make_pair(str[0], str[1]), Char_vec[make_pair(str[0], str[1])][str[2]-'0'])];
-		int id2 = Char_map[make_pair(make_pair(str[3], str[4]), Char_vec[make_pair(str[3], str[4])][str[5]-'0'])];
+	long long tmp;
 
-		fin2 >> Times_2[Int(id1, id2)];
-	}
+	while (fin2 >> tmp)
+		fin2 >> Times_2[tmp];
 }
 
-inline int ChineseChar(const char ch, const char ch2)
+/*inline int ChineseWord(const char ch, const char ch2)
 {
 	if ((0xffffffa1 <= (int)ch && (int)ch <= 0xffffffa8) || ((int)ch == 0xffffffa9 && (int)ch2 != 0xffffff96))
-		return -1; // 中文字符
+		return -1;
 	if (ch & 0x80)
-		return 1; // 汉字
+		return 1;
 	return 0;
 }
 
@@ -105,18 +139,18 @@ string Int_to_String(int n)
 	return stream.str();
 }
 
-inline string OutputChar(const int id)
+inline string OutputWord(const int id)
 {
-	//cout << "Character " << id << ": " << Char[id].first << Char[id].second << " " << Pinyin[Char_pinyin[id]] << endl;
+	//cout << "Word " << id << ": " << Word[id].first << Word[id].second << " " << Pinyin[Word_pinyin[id]] << endl;
 
 	if (id == 0) return "??0";
 
 	string tmp = ""; int i = 0;
-	while (Char_vec[Char[id]][i] != Char_pinyin[id]) i++;
-	return tmp + Char[id].first + Char[id].second + Int_to_String(i);
+	while (Word_vec[Word[id]][i] != Word_pinyin[id]) i++;
+	return tmp + Word[id].first + Word[id].second + Int_to_String(i);
 }
 
-inline void OutputChar2(const int id)
+inline void OutputWord2(const int id)
 {
-	cout << "Character " << id << ": " << Char[id].first << Char[id].second << " " << Pinyin[Char_pinyin[id]] << endl;
-}
+	cout << "Word " << id << ": " << Word[id].first << Word[id].second << " " << Pinyin[Word_pinyin[id]] << endl;
+}*/
