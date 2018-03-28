@@ -11,7 +11,7 @@ inline void ERROR(int x)
 {
 	if (x == 1) puts("过多参数。");
 	if (x == 2) puts("过少参数，请指定输入文件和输出文件的路径。");
-	if (x == 2) puts("例如 pinyin ../data/input.txt ../data/output.txt");
+	if (x == 2) puts("例如 pinyin.exe ../data/input.txt ../data/output.txt");
 	if (x == 3) puts("找不到输入文件。");
 	if (x == 4) puts("找不到数据文件 1-gram");
 	if (x == 5) puts("找不到数据文件 2-gram");

@@ -13,7 +13,7 @@ inline void ERROR(int x)
 {
 	if (x == 1) puts("过多参数。");
 	if (x == 2) puts("过少参数，请指定标准文件和待比较文件的路径。");
-	if (x == 2) puts("例如 pinyin ../data/answer.txt ../data/output.txt");
+	if (x == 2) puts("例如 diff.exe ../data/origin.txt ../data/output.txt");
 	if (x == 3) puts("找不到标准文本。");
 	if (x == 4) puts("找不到待比较文本。");
 	exit(1);
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
 	if (argc < 3) ERROR(2);
 
 	ifstream fin1(argv[2]); if (!fin1) ERROR(4);
-	ifstream fin2(argv[1]); if (!fin2) ERROR(4);
+	ifstream fin2(argv[1]); if (!fin2) ERROR(3);
 	ofstream fout("../result.txt");
 
 	string str1, str2; int tot=0, wrong=0;
