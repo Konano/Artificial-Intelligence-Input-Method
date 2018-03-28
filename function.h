@@ -101,6 +101,8 @@ inline int Word_ID(string wd, string py)
 map<long long,int> Times_2;
 int Times_1[MAXWORD];
 
+int N[1000000];
+
 inline void ReadData()
 {
 	// ============================================ 1-word
@@ -120,6 +122,8 @@ inline void ReadData()
 
 	while (fin2 >> tmp)
 		fin2 >> Times_2[tmp];
+
+	N[Times_2[tmp]]++;
 }
 
 /*inline int ChineseWord(const char ch, const char ch2)

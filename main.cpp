@@ -32,7 +32,12 @@ int len, text[1000];
 double f[1000][3000];
 int g[1000][3000];
 
-vector<pair<int,int> > wd[1000];
+vector<pair<int,int> > st[1000];
+vector<int> ed[1000];
+
+inline int Count_1(int x) { return Times_1[x]; }
+inline int Count_2(int x, int y) { return (Times_2.count(Long(x,y)) == 0) ? 0 : Times_2[Long(x,y)]; }
+inline int Length(int x) { return Word[x].length()/2; }
 
 inline string Translate(const string str)
 {
@@ -43,9 +48,9 @@ inline string Translate(const string str)
 		text[++len] = Pinyin_map[str.substr(S, E-S)], S = E+1, E = str.find(' ', S);
 	text[++len] = Pinyin_map[str.substr(S, L-S)];
 
-	len += 2; text[len-1] = text[0] = 1; f[0][0] = 0;
+	len += 2; text[len-1] = text[0] = 1;
 
-	for(int i = 0; i < len; i++) wd[i].clear();
+	for(int i = 0; i < len; i++) ed[i].clear(), st[i].clear();
 
 	for(int i = 0; i < len; i++)
 	{
@@ -55,47 +60,84 @@ inline string Translate(const string str)
 			T = Tree[T].children[text[now]];
 			int num = (int)Tree[T].wd.size();
 			for(int j = 0; j < num; j++)
-				wd[now].push_back(make_pair(Tree[T].wd[j], now-i+1));
+			{
+				if (i) st[i-1].push_back(make_pair(Tree[T].wd[j], (int)ed[now].size()));
+				ed[now].push_back(Tree[T].wd[j]);
+			}
 			now ++;
 		}
 	}
-
-	for(int o = 1; o < len; o++)
+	for(int o = 0; o < len; o++)
 	{
-		int num = (int)wd[o].size();
+		int num = (int)ed[o].size();
+		for(int i = 0; i < num; i++) f[o][i] = -1e90, g[o][i] = -1;
+	}
+	f[0][0] = 0;
+
+	for(int o = 0; o < len-1; o++)
+	{
+		int num = (int)ed[o].size();
+		int _num = (int)st[o].size();
 
 		int tot_1 = 0;
-		for(int i = 0; i < num; i++) tot_1 += Times_1[wd[o][i].first] + 1;
+		for(int j = 0; j < _num; j++)
+			tot_1 += Count_1(st[o][j].first);
 
 		for(int i = 0; i < num; i++)
 		{
-			f[o][i] = -1e90;
-			g[o][i] = -1;
-
-			int _o = o - wd[o][i].second;
-			int _num = (int)wd[_o].size();
-
 			int tot_2 = 0;
 			for(int j = 0; j < _num; j++)
-				tot_2 += (Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1;
+				tot_2 += Count_2(ed[o][i], st[o][j].first)+1;
 
 			for(int j = 0; j < _num; j++)
 			{
-				double tmp = f[_o][j]
-					+ log(1.0 * ((Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1) / tot_2)
-					+ log(1.0 * (Times_1[wd[o][i].first] + 1) / tot_1);
-				if (tmp > f[o][i])
-				{
-					f[o][i] = tmp;
-					g[o][i] = j;
-				}
+				int _o = o + Length(st[o][j].first);
+				int _j = st[o][j].second;
+
+				double tmp = f[o][i] + log(1.0*(Count_2(ed[o][i], st[o][j].first)+1) / tot_2);
+				if (tmp > f[_o][_j])
+					f[_o][_j] = tmp,
+					g[_o][_j] = i;
 			}
 		}
+
+		// int tot_1 = 0;
+		// for(int i = 0; i < num; i++) tot_1 += Times_1[wd[o][i].first] + 1;
+
+		// int tot_2 = 0;
+		// for(int i = 0; i < num; i++)
+		// {
+		// 	int _o = o - wd[o][i].second;
+		// 	int _num = (int)wd[_o].size();
+
+		// 	for(int j = 0; j < _num; j++)
+		// 		tot_2 += count_2(wd[_o][j].first, wd[o][i].first) + 1;
+		// }
+
+		// for(int i = 0; i < num; i++)
+		// {
+		// 	int _o = o - wd[o][i].second;
+		// 	int _num = (int)wd[_o].size();
+
+		// 	for(int j = 0; j < _num; j++)
+		// 	{
+		// 		double tmp = f[_o][j] + log((count_2(wd[_o][j].first, wd[o][i].first)+1) / tot_2);
+		// 		if (tmp > f[o][i])
+		// 		{
+		// 			f[o][i] = tmp;
+		// 			g[o][i] = j;
+		// 		}
+		// 	}
+		// }
+
+				// tot_2 += (Times_2.count(Long(wd[_o][j].first, wd[o][i].first)) ? Times_2[Long(wd[_o][j].first, wd[o][i].first)] : 0) + 1;
+
+
 	}
 
 	double MAX = -1e90;
 	int Best = -1;
-	int num = (int)wd[len-1].size();
+	int num = (int)ed[len-1].size();
 	for(int i = 0; i < num; i++)
 		if (MAX < f[len-1][i])
 			MAX = f[len-1][i], Best = i;
@@ -104,8 +146,8 @@ inline string Translate(const string str)
 
 	for(int o = len-1; o; )
 	{
-		ans.push_back(wd[o][Best].first);
-		int strL = Word[wd[o][Best].first].length()/2;
+		ans.push_back(ed[o][Best]);
+		int strL = Length(ed[o][Best]);
 		Best = g[o][Best];
 		o -= strL;
 	}
